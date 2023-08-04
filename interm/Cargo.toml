@@ -1,14 +1,10 @@
 [package]
-name = "macros"
+name = "interm"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-proc-macro = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 encoding_rs = "0.8.32"
-proc-macro2 = "1.0.66"
-quote = "1.0.32"
-syn = {version = "2.0.28", features = ["full"] }
+macros = {path = "../macros"}

@@ -3,9 +3,33 @@
 version = 3
 
 [[package]]
+name = "cfg-if"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "encoding_rs"
+version = "0.8.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "071a31f4ee85403370b58aca746f01041ede6f0da2730960ad001edc2b71b394"
+dependencies = [
+ "cfg-if",
+]
+
+[[package]]
+name = "interm"
+version = "0.1.0"
+dependencies = [
+ "encoding_rs",
+ "macros",
+]
+
+[[package]]
 name = "macros"
 version = "0.1.0"
 dependencies = [
+ "encoding_rs",
  "proc-macro2",
  "quote",
  "syn",
@@ -50,5 +74,6 @@ checksum = "301abaae475aa91687eb82514b328ab47a211a533026cb25fc3e519b86adfc3c"
 name = "usage"
 version = "0.1.0"
 dependencies = [
+ "interm",
  "macros",
 ]
