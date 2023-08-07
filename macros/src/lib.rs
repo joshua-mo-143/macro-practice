@@ -1,11 +1,12 @@
-use proc_macro::{Group, Span, TokenStream};
-use quote::quote_spanned;
-use std::collections::HashSet;
+use proc_macro::{Span, TokenStream};
+use quote::{quote, quote_spanned};
 use syn::{
     parse::{Parse, ParseStream, Result},
     parse_macro_input,
-    punctuated::Punctuated,
-    Data, DeriveInput, Ident, ItemFn, Token,
+    Data, DeriveInput, Ident, ItemFn,
+    token,
+    parenthesized,
+    LitInt
 };
 
 #[proc_macro_attribute]
@@ -35,7 +36,9 @@ pub fn benchmark(_args: TokenStream, input: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn mojibake(args: TokenStream, input: TokenStream) -> TokenStream {
-    let meme = parse_macro_input!(args as Args);
+    let args = parse_macro_input!(args as Args);
+
+    let num = args.nr;
 
     let input = syn::parse2::<DeriveInput>(input.into())
         .expect("Couldn't parse into DeriveInput, are you using this on a Struct?");
@@ -49,6 +52,12 @@ pub fn mojibake(args: TokenStream, input: TokenStream) -> TokenStream {
         _ => {
             panic!("This isn't a struct!");
         }
+    };
+
+    let operator = if args.up_or_down == "up" {
+        quote! {+}
+    } else {
+        quote! {-}
     };
 
     let fields = data.fields.clone();
@@ -76,7 +85,9 @@ pub fn mojibake(args: TokenStream, input: TokenStream) -> TokenStream {
                     let str = &self.#field_names.to_string();
                     let (res, encoding, had_errors) = SHIFT_JIS.encode(&str);
 
-                    let vec: Vec<u8> = res.into_owned().to_vec().iter().map(|x| x + 75).collect();
+                    let vec: Vec<u8> = res.into_owned().to_vec().iter().map(|x| 
+                        x #operator #num
+                    ).collect();
 
                     let (data, encoding, had_errors) = SHIFT_JIS.decode(&vec);
 
@@ -89,15 +100,24 @@ pub fn mojibake(args: TokenStream, input: TokenStream) -> TokenStream {
     TokenStream::from(code)
 }
 
+#[allow(dead_code)]
 struct Args {
-    vars: HashSet<Ident>,
+    encode_type: Ident,
+    comma: token::Comma,
+    up_or_down: Ident,
+    paren: token::Paren,
+    nr: LitInt
 }
 
 impl Parse for Args {
     fn parse(input: ParseStream) -> Result<Self> {
-        let vars = Punctuated::<Ident, Token![,]>::parse_terminated(input)?;
+        let content;
         Ok(Args {
-            vars: vars.into_iter().collect(),
-        })
+            encode_type: input.parse()?,
+            comma: input.parse()?,
+            up_or_down: input.parse()?,
+            paren: parenthesized!(content in input),
+            nr: content.parse()?
+            })
     }
 }
